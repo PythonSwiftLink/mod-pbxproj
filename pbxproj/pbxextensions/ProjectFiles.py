@@ -184,11 +184,11 @@ class ProjectFiles:
                     build_file = self.get_object(build_file_id)
                     if build_file is None:
                         continue
-
-                    file_ref = self.get_object(build_file.fileRef)
-                    if 'path' in file_ref and ProjectFiles._path_leaf(path) == ProjectFiles._path_leaf(file_ref.path) \
-                            and target in potential_targets:
-                        potential_targets.remove(target)
+                    if hasattr(build_file,"fileRef"):
+                        file_ref = self.get_object(build_file.fileRef)
+                        if 'path' in file_ref and ProjectFiles._path_leaf(path) == ProjectFiles._path_leaf(file_ref.path) \
+                                and target in potential_targets:
+                            potential_targets.remove(target)
 
         return [target.name for target in potential_targets]
 
@@ -327,10 +327,10 @@ class ProjectFiles:
         for target, build_phase in self.objects.get_buildphases_on_target(target_name):
             for build_file_id in filter(lambda x: x in self.objects, build_phase.files):
                 build_file = self.objects[build_file_id]
-
-                if build_file.fileRef == file_ref.get_id():
-                    # remove the build file from the phase
-                    build_phase.remove_build_file(build_file)
+                if hasattr(build_file,"fileRef"):
+                    if build_file.fileRef == file_ref.get_id():
+                        # remove the build file from the phase
+                        build_phase.remove_build_file(build_file)
 
             # if the build_phase is empty remove it too, unless it's a shell script.
             if build_phase.files.__len__() == 0 and build_phase.isa != 'PBXShellScriptBuildPhase':
@@ -338,8 +338,14 @@ class ProjectFiles:
                 target.remove_build_phase(build_phase)
 
         # remove it iff it's removed from all targets or no build file reference it
-        if len([1 for x in self.objects.get_objects_in_section('PBXBuildFile') if x.fileRef == file_ref.get_id()]) != 0:
+        _file_list = []
+        for x in self.objects.get_objects_in_section('PBXBuildFile'):
+            if hasattr(x,"fileRef"):
+                _file_list.append(x)
+        if len(_file_list) != 0:
             return True
+        # if len([1 for x in self.objects.get_objects_in_section('PBXBuildFile') if x.fileRef == file_ref.get_id()]) != 0:
+        #     return True
 
         # remove the file from any groups if there is no reference from any target
         for group in filter(lambda x: file_ref.get_id() in x.children, self.objects.get_objects_in_section('PBXGroup')):

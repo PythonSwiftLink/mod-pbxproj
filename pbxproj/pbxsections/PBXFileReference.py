@@ -42,8 +42,14 @@ class PBXFileReference(PBXGenericObject):
     def remove(self, recursive=True):
         parent = self.get_parent()
         # search on the BuildFiles if there is a build file to be removed, and remove it
-        build_files = [build_file for build_file in parent.get_objects_in_section('PBXBuildFile')
-                       if build_file.fileRef == self.get_id()]
+        build_files = []
+        for build_file in parent.get_objects_in_section('PBXBuildFile'):
+            if hasattr(build_file, "fileRef"):
+                if build_file.fileRef == self.get_id():
+                    build_files.append(build_file)
+        
+        # build_files = [build_file for build_file in parent.get_objects_in_section('PBXBuildFile')
+        #                if build_file.fileRef == self.get_id()]
         for build_file in build_files:
             build_file.remove(recursive)
 
