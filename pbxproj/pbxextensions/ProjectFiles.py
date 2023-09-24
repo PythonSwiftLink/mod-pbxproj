@@ -180,15 +180,16 @@ class ProjectFiles:
         for target in potential_targets.copy():
             for build_phase_id in target.buildPhases:
                 build_phase = self.get_object(build_phase_id)
-                for build_file_id in build_phase.files:
-                    build_file = self.get_object(build_file_id)
-                    if build_file is None:
-                        continue
-                    if hasattr(build_file,"fileRef"):
-                        file_ref = self.get_object(build_file.fileRef)
-                        if 'path' in file_ref and ProjectFiles._path_leaf(path) == ProjectFiles._path_leaf(file_ref.path) \
-                                and target in potential_targets:
-                            potential_targets.remove(target)
+                if hasattr(build_phase, 'files'): 
+                    for build_file_id in build_phase.files:
+                        build_file = self.get_object(build_file_id)
+                        if build_file is None:
+                            continue
+                        if hasattr(build_file,"fileRef"):
+                            file_ref = self.get_object(build_file.fileRef)
+                            if 'path' in file_ref and ProjectFiles._path_leaf(path) == ProjectFiles._path_leaf(file_ref.path) \
+                                    and target in potential_targets:
+                                potential_targets.remove(target)
 
         return [target.name for target in potential_targets]
 

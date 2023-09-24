@@ -10,14 +10,15 @@ class PBXGenericTarget(PBXGenericObject):
 
         if build_phase_type is None:
             return result
-
+        
         for build_phase_id in self.buildPhases:
             target_build_phase = parent[build_phase_id]
-            current_build_phase = target_build_phase.isa
+            if hasattr(target_build_phase, 'isa'):
+                current_build_phase = target_build_phase.isa
 
-            if current_build_phase == build_phase_type and \
-                    all(key in target_build_phase and target_build_phase[key] == search_parameters[key] for key in search_parameters):
-                result.append(target_build_phase)
+                if current_build_phase == build_phase_type and \
+                        all(key in target_build_phase and target_build_phase[key] == search_parameters[key] for key in search_parameters):
+                    result.append(target_build_phase)
 
         if result.__len__() == 0:
             build_phase = self._get_class_reference(build_phase_type).create(*create_parameters)
